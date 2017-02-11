@@ -613,247 +613,527 @@ var ssw = {
     fsw = start + parseInt(box.slice(4,7)) + "x" + parseInt(box.slice(12,15)) + ssw.filter(fsw);
     return ssw.displace(fsw,xdiff,ydiff);
   },
-  svg: function(text,options){
-    var fsw = ssw.fsw(text,true);
-    var styling = ssw.styling(fsw);
-    var stylings;
-    var pos;
-    var keysize;
-    var colors;
-    var i;
-    var size;
-    if (!fsw) {
-      var key = ssw.key(text);
-      keysize = ssw.size(key);
-      if (!keysize) {return '';}
-      if (key.length==6) {
-        fsw = key + "500x500";
-      } else {
-        fsw = key;
-      }
-    }
-    if (!options) {
-      options = {};
-    }
-    if (options.size) {
-      options.size = parseFloat(options.size) || 'x';
-    } else {
-      options.size = 1;
-    }
-    if (options.colorize) {
-      options.colorize = true;
-    } else {
-      options.colorize = false;
-    }
-    if (options.pad) {
-      options.pad = parseInt(options.pad);
-    } else {
-      options.pad = 0;
-    }
-    if (!options.line){
-      options.line="black";
-    } else {
-      options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.line)?"#"+options.line:options.line;
-    }
-    if (!options.fill){
-      options.fill="white";
-    } else {
-      options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.fill)?"#"+options.fill:options.fill;
-    }
-    if (!options.back){
-      options.back="";
-    } else {
-      options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.back)?"#"+options.back:options.back;
-    }
-    options.E = [];
-    options.F = [];
-
-    options.copy = options.copy=="uni8"?"uni8":options.copy=="code"?"code":"key";
-
-    if (styling){
-      var rs;
-      stylings = styling.split('-');
-      rs = stylings[1].match(/C/);
-      options.colorize = rs?true:false;
-
-      rs = stylings[1].match(/P[0-9]{2}/);
-      if (rs){
-        options.pad = parseInt(rs[0].substring(1,rs[0].length));
-      }
-
-      rs = stylings[1].match(/G_([0-9a-fA-F]{3}([0-9a-fA-F]{3})?|[a-zA-Z]+)_/);
-      if (rs){
-        var back = rs[0].substring(2,rs[0].length-1);
-        options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(back)?"#"+back:back;
-      }
-
-      rs = stylings[1].match(/D_([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+))?_/);
-      if (rs) {
-        colors = rs[0].substring(2,rs[0].length-1).split(',');
-        if (colors[0]) {
-          options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0])?"#"+colors[0]:colors[0];
-        }
-        if (colors[1]) {
-          options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1])?"#"+colors[1]:colors[1];
-        }
-      }
-
-      rs = stylings[1].match(/Z([0-9]+(\.[0-9]+)?|x)/);
-      if (rs){
-        options.size = parseFloat(rs[0].substring(1,rs[0].length)) || 'x';
-      }
-
-      if (!stylings[2]) {
-        stylings[2]='';
-      }
-
-      rs = stylings[2].match(/D[0-9]{2}_([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+))?_/g);
-      if (rs) {
-        for (i=0; i < rs.length; i+=1) {
-          pos = parseInt(rs[i].substring(1,3));
-          colors = rs[i].substring(4,rs[i].length-1).split(',');
-          if (colors[0]) {
-            colors[0] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0])?"#"+colors[0]:colors[0];
+  svg: function (text, options) {
+      var fsw = ssw.fsw(text, true);
+      var styling = ssw.styling(fsw);
+      var stylings;
+      var pos;
+      var keysize;
+      var colors;
+      var i;
+      var size;
+      if (!fsw) {
+          var key = ssw.key(text);
+          keysize = ssw.size(key);
+          if (!keysize) { return ''; }
+          if (key.length == 6) {
+              fsw = key + "500x500";
+          } else {
+              fsw = key;
           }
-          if (colors[1]) {
-            colors[1] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1])?"#"+colors[1]:colors[1];
-          }
-          options.E[pos]=colors;
-        }
       }
-
-      rs = stylings[2].match(/Z[0-9]{2},[0-9]+(\.[0-9]+)?(,[0-9]{3}x[0-9]{3})?/g);
-      if (rs){
-        for (i=0; i < rs.length; i+=1) {
-          pos = parseInt(rs[i].substring(1,3));
-          size = rs[i].substring(4,rs[i].length).split(',');
-          size[0]=parseFloat(size[0]);
-          options.F[pos]=size;
-        }
+      if (!options) {
+          options = {};
       }
-
-      if (stylings.length>3){
-        stylings = stylings.slice(3).join('-').split('!');
-        options.class = stylings[0]?stylings[0]:'';
-        options.id = stylings[1]?stylings[1]:'';
-      }
-    }
-
-    var sym;
-    var syms;
-    var gelem;
-    var rsym = /S[123][0-9a-f]{2}[0-5][0-9a-f][0-9]{3}x[0-9]{3}/g;
-    var o = {};
-    o.L = -1;
-    o.R = 1;
-    var x;
-    var x1 = 500;
-    var x2 = 500;
-    var y;
-    var y1 = 500;
-    var y2 = 500;
-    var k;
-    var w;
-    var h;
-    var l;
-    k = fsw.charAt(0);
-    var bbox = ssw.bbox(fsw);
-    bbox = bbox.split(' ');
-    x1 = parseInt(bbox[0]);
-    x2 = parseInt(bbox[1]);
-    y1 = parseInt(bbox[2]);
-    y2 = parseInt(bbox[3]);
-    if (k == 'S') {
-      if (x1==500 && y1==500){
-        size = keysize.split('x');
-        x2 = 500 + parseInt(size[0]);
-        y2 = 500 + parseInt(size[1]);
+      if (options.size) {
+          options.size = parseFloat(options.size) || 'x';
       } else {
-        x2 = 1000-x1;
-        y2 = 1000-y1;
+          options.size = 1;
       }
-    }
-    syms = fsw.match(rsym);
-    if (!syms) syms=[];
-    var keysized;
-    for (i=0; i < syms.length; i+=1) {
-      sym = syms[i].slice(0,6);
-      x = syms[i].slice(6, 9);
-      y = syms[i].slice(10, 13);
-      if (options.F[i+1]){
-        if (options.F[i+1][1]){
-          x = parseInt(x) + parseInt(options.F[i+1][1].slice(0,3))-500;
-          y = parseInt(y) + parseInt(options.F[i+1][1].slice(4,7))-500;
-          x1 = Math.min(x1,x);
-          y1 = Math.min(y1,y);
-        }
-        keysized = ssw.size(sym);
-        if (keysized) {
-          keysized = keysized.split('x');
-          x2 = Math.max(x2,parseInt(x) + (options.F[i+1][0] * parseInt(keysized[0])));
-          y2 = Math.max(y2,parseInt(y) + (options.F[i+1][0] * parseInt(keysized[1])));
-        }
+      if (options.colorize) {
+          options.colorize = true;
+      } else {
+          options.colorize = false;
+      }
+      if (options.pad) {
+          options.pad = parseInt(options.pad);
+      } else {
+          options.pad = 0;
+      }
+      if (!options.line) {
+          options.line = "black";
+      } else {
+          options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.line) ? "#" + options.line : options.line;
+      }
+      if (!options.fill) {
+          options.fill = "white";
+      } else {
+          options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.fill) ? "#" + options.fill : options.fill;
+      }
+      if (!options.back) {
+          options.back = "";
+      } else {
+          options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.back) ? "#" + options.back : options.back;
+      }
+      options.E = [];
+      options.F = [];
 
-      }
-      y = parseInt(y);
-      gelem = '<g transform="translate(' + x + ',' + y + ')">';
-      gelem += '<text ';
-      gelem += 'class="sym-fill" ';
-      if (!options.css) {
-        gelem += 'style="pointer-events:none;font-family:\'SuttonSignWritingFill\';font-size:' + (options.F[i+1]?30*options.F[i+1][0]:30) + 'px;fill:' + (options.E[i+1]?options.E[i+1][1]?options.E[i+1][1]:options.fill:options.fill) + ';';
-        gelem += '"';
-      }
-      gelem += '>';
-      gelem += ssw.pua(sym);
-      gelem += '</text>';
-      gelem += '<text ';
-      gelem += 'class="sym-line" ';
-      if (!options.css) {
-        gelem += 'style="';
-        gelem += options.copy=='code'?'':'pointer-events:none;';
-        gelem += 'font-family:\'SuttonSignWriting\';font-size:' + (options.F[i+1]?30*options.F[i+1][0]:30) + 'px;fill:' + (options.E[i+1]?options.E[i+1][0]:options.colorize?'#'+ssw.colorize(sym):options.line) + ';';
-        gelem += '"';
-      }
-      gelem += '>';
-      gelem += ssw.code(sym);
-      gelem += '</text>';
-      gelem += '</g>';
-      syms[i] = gelem;
-    }
+      options.copy = options.copy == "uni8" ? "uni8" : options.copy == "code" ? "code" : "key";
 
-    x1 = x1 - options.pad;
-    x2 = x2 + options.pad;
-    y1 = y1 - options.pad;
-    y2 = y2 + options.pad;
-    w = x2 - x1;
-    h = y2 - y1;
-    l = o[k] || 0;
-    l = l * 75 + x1 - 400;
-    var svg = '<svg ';
-    if (options.class) {
-      svg += 'class="' + options.class + '" ';
-    }
-    if (options.id) {
-      svg += 'id="' + options.id + '" ';
-    }
-    svg += 'version="1.1" xmlns="http://www.w3.org/2000/svg" ';
-    if (options.size!='x') {
-      svg += 'width="' + (w * options.size) + '" height="' + (h * options.size) + '" ';
-    }
-    svg += 'viewBox="' + x1 + ' ' + y1 + ' ' + w + ' ' + h + '">';
-    if (options.copy!='code') {
-      svg += '<text style="font-size:0%;">';
-      svg += options.copy=="pua"?ssw.pua(text):options.copy=="uni8"?ssw.uni8(text):options.copy=="code"?ssw.code(text):text;
-      svg += '</text>';
-    }
-    if (options.back) {
-      svg += '  <rect x="' + x1 + '" y="' + y1 + '" width="' + w + '" height="' + h + '" style="fill:' + options.back + ';" />';
-    }
-    svg += syms.join('') + "</svg>";
-    if (options.laned){
-      svg = '<div style="padding:10px;position:relative;width:' + w + 'px;height:' + h + 'px;left:' + l + 'px;">' + svg + '</div>';
-    }
-    return svg;
+      if (styling) {
+          var rs;
+          stylings = styling.split('-');
+          rs = stylings[1].match(/C/);
+          options.colorize = rs ? true : false;
+
+          rs = stylings[1].match(/P[0-9]{2}/);
+          if (rs) {
+              options.pad = parseInt(rs[0].substring(1, rs[0].length));
+          }
+
+          rs = stylings[1].match(/G_([0-9a-fA-F]{3}([0-9a-fA-F]{3})?|[a-zA-Z]+)_/);
+          if (rs) {
+              var back = rs[0].substring(2, rs[0].length - 1);
+              options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(back) ? "#" + back : back;
+          }
+
+          rs = stylings[1].match(/D_([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+))?_/);
+          if (rs) {
+              colors = rs[0].substring(2, rs[0].length - 1).split(',');
+              if (colors[0]) {
+                  options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0]) ? "#" + colors[0] : colors[0];
+              }
+              if (colors[1]) {
+                  options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1]) ? "#" + colors[1] : colors[1];
+              }
+          }
+
+          rs = stylings[1].match(/Z([0-9]+(\.[0-9]+)?|x)/);
+          if (rs) {
+              options.size = parseFloat(rs[0].substring(1, rs[0].length)) || 'x';
+          }
+
+          if (!stylings[2]) {
+              stylings[2] = '';
+          }
+
+          rs = stylings[2].match(/D[0-9]{2}_([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+))?_/g);
+          if (rs) {
+              for (i = 0; i < rs.length; i += 1) {
+                  pos = parseInt(rs[i].substring(1, 3));
+                  colors = rs[i].substring(4, rs[i].length - 1).split(',');
+                  if (colors[0]) {
+                      colors[0] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0]) ? "#" + colors[0] : colors[0];
+                  }
+                  if (colors[1]) {
+                      colors[1] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1]) ? "#" + colors[1] : colors[1];
+                  }
+                  options.E[pos] = colors;
+              }
+          }
+
+          rs = stylings[2].match(/Z[0-9]{2},[0-9]+(\.[0-9]+)?(,[0-9]{3}x[0-9]{3})?/g);
+          if (rs) {
+              for (i = 0; i < rs.length; i += 1) {
+                  pos = parseInt(rs[i].substring(1, 3));
+                  size = rs[i].substring(4, rs[i].length).split(',');
+                  size[0] = parseFloat(size[0]);
+                  options.F[pos] = size;
+              }
+          }
+
+          if (stylings.length > 3) {
+              stylings = stylings.slice(3).join('-').split('!');
+              options.class = stylings[0] ? stylings[0] : '';
+              options.id = stylings[1] ? stylings[1] : '';
+          }
+      }
+
+      var sym;
+      var syms;
+      var gelem;
+      var rsym = /S[123][0-9a-f]{2}[0-5][0-9a-f][0-9]{3}x[0-9]{3}/g;
+      var o = {};
+      o.L = -1;
+      o.R = 1;
+      var x;
+      var x1 = 500;
+      var x2 = 500;
+      var y;
+      var y1 = 500;
+      var y2 = 500;
+      var k;
+      var w;
+      var h;
+      var l;
+      k = fsw.charAt(0);
+      var bbox = ssw.bbox(fsw);
+      bbox = bbox.split(' ');
+      x1 = parseInt(bbox[0]);
+      x2 = parseInt(bbox[1]);
+      y1 = parseInt(bbox[2]);
+      y2 = parseInt(bbox[3]);
+      if (k == 'S') {
+          if (x1 == 500 && y1 == 500) {
+              size = keysize.split('x');
+              x2 = 500 + parseInt(size[0]);
+              y2 = 500 + parseInt(size[1]);
+          } else {
+              x2 = 1000 - x1;
+              y2 = 1000 - y1;
+          }
+      }
+      syms = fsw.match(rsym);
+      if (!syms) syms = [];
+      var keysized;
+      for (i = 0; i < syms.length; i += 1) {
+          sym = syms[i].slice(0, 6);
+          x = syms[i].slice(6, 9);
+          y = syms[i].slice(10, 13);
+          if (options.F[i + 1]) {
+              if (options.F[i + 1][1]) {
+                  x = parseInt(x) + parseInt(options.F[i + 1][1].slice(0, 3)) - 500;
+                  y = parseInt(y) + parseInt(options.F[i + 1][1].slice(4, 7)) - 500;
+                  x1 = Math.min(x1, x);
+                  y1 = Math.min(y1, y);
+              }
+              keysized = ssw.size(sym);
+              if (keysized) {
+                  keysized = keysized.split('x');
+                  x2 = Math.max(x2, parseInt(x) + (options.F[i + 1][0] * parseInt(keysized[0])));
+                  y2 = Math.max(y2, parseInt(y) + (options.F[i + 1][0] * parseInt(keysized[1])));
+              }
+
+          }
+          y = parseInt(y);
+          gelem = '<g transform="translate(' + x + ',' + y + ')">';
+          gelem += '<text ';
+          gelem += 'class="sym-fill" ';
+          if (!options.css) {
+              gelem += 'style="pointer-events:none;font-family:\'SuttonSignWritingFill\';font-size:' + (options.F[i + 1] ? 30 * options.F[i + 1][0] : 30) + 'px;fill:' + (options.E[i + 1] ? options.E[i + 1][1] ? options.E[i + 1][1] : options.fill : options.fill) + ';';
+              gelem += '"';
+          }
+          gelem += '>';
+          gelem += ssw.pua(sym);
+          gelem += '</text>';
+          gelem += '<text ';
+          gelem += 'class="sym-line" ';
+          if (!options.css) {
+              gelem += 'style="';
+              gelem += options.copy == 'code' ? '' : 'pointer-events:none;';
+              gelem += 'font-family:\'SuttonSignWriting\';font-size:' + (options.F[i + 1] ? 30 * options.F[i + 1][0] : 30) + 'px;fill:' + (options.E[i + 1] ? options.E[i + 1][0] : options.colorize ? '#' + ssw.colorize(sym) : options.line) + ';';
+              gelem += '"';
+          }
+          gelem += '>';
+          gelem += ssw.code(sym);
+          gelem += '</text>';
+          gelem += '</g>';
+          syms[i] = gelem;
+      }
+
+      x1 = x1 - options.pad;
+      x2 = x2 + options.pad;
+      y1 = y1 - options.pad;
+      y2 = y2 + options.pad;
+      w = x2 - x1;
+      h = y2 - y1;
+      l = o[k] || 0;
+      l = l * 75 + x1 - 400;
+      var svg = '<svg ';
+      if (options.class) {
+          svg += 'class="' + options.class + '" ';
+      }
+      if (options.id) {
+          svg += 'id="' + options.id + '" ';
+      }
+      svg += 'version="1.1" xmlns="http://www.w3.org/2000/svg" ';
+      if (options.size != 'x') {
+          svg += 'width="' + (w * options.size) + '" height="' + (h * options.size) + '" ';
+      }
+      svg += 'viewBox="' + x1 + ' ' + y1 + ' ' + w + ' ' + h + '">';
+      if (options.copy != 'code') {
+          svg += '<text style="font-size:0%;">';
+          svg += options.copy == "pua" ? ssw.pua(text) : options.copy == "uni8" ? ssw.uni8(text) : options.copy == "code" ? ssw.code(text) : text;
+          svg += '</text>';
+      }
+      if (options.back) {
+          svg += '  <rect x="' + x1 + '" y="' + y1 + '" width="' + w + '" height="' + h + '" style="fill:' + options.back + ';" />';
+      }
+      svg += syms.join('') + "</svg>";
+      if (options.laned) {
+          svg = '<div style="padding:10px;position:relative;width:' + w + 'px;height:' + h + 'px;left:' + l + 'px;">' + svg + '</div>';
+      }
+      return svg;
+  }, symbolsList: function (text, options) {
+      var fsw = ssw.fsw(text, true);
+      var styling = ssw.styling(fsw);
+      var stylings;
+      var pos;
+      var keysize;
+      var colors;
+      var i;
+      var size;
+      if (!fsw) {
+          var key = ssw.key(text);
+          keysize = ssw.size(key);
+          if (!keysize) { return ''; }
+          if (key.length == 6) {
+              fsw = key + "500x500";
+          } else {
+              fsw = key;
+          }
+      }
+      if (!options) {
+          options = {};
+      }
+      if (options.size) {
+          options.size = parseFloat(options.size) || 'x';
+      } else {
+          options.size = 1;
+      }
+      if (options.colorize) {
+          options.colorize = true;
+      } else {
+          options.colorize = false;
+      }
+      if (options.pad) {
+          options.pad = parseInt(options.pad);
+      } else {
+          options.pad = 0;
+      }
+      if (!options.line) {
+          options.line = "black";
+      } else {
+          options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.line) ? "#" + options.line : options.line;
+      }
+      if (!options.fill) {
+          options.fill = "white";
+      } else {
+          options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.fill) ? "#" + options.fill : options.fill;
+      }
+      if (!options.back) {
+          options.back = "";
+      } else {
+          options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(options.back) ? "#" + options.back : options.back;
+      }
+      options.E = [];
+      options.F = [];
+
+      options.copy = options.copy == "uni8" ? "uni8" : options.copy == "code" ? "code" : "key";
+
+      if (styling) {
+          var rs;
+          stylings = styling.split('-');
+          rs = stylings[1].match(/C/);
+          options.colorize = rs ? true : false;
+
+          rs = stylings[1].match(/P[0-9]{2}/);
+          if (rs) {
+              options.pad = parseInt(rs[0].substring(1, rs[0].length));
+          }
+
+          rs = stylings[1].match(/G_([0-9a-fA-F]{3}([0-9a-fA-F]{3})?|[a-zA-Z]+)_/);
+          if (rs) {
+              var back = rs[0].substring(2, rs[0].length - 1);
+              options.back = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(back) ? "#" + back : back;
+          }
+
+          rs = stylings[1].match(/D_([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-zA-Z]+))?_/);
+          if (rs) {
+              colors = rs[0].substring(2, rs[0].length - 1).split(',');
+              if (colors[0]) {
+                  options.line = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0]) ? "#" + colors[0] : colors[0];
+              }
+              if (colors[1]) {
+                  options.fill = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1]) ? "#" + colors[1] : colors[1];
+              }
+          }
+
+          rs = stylings[1].match(/Z([0-9]+(\.[0-9]+)?|x)/);
+          if (rs) {
+              options.size = parseFloat(rs[0].substring(1, rs[0].length)) || 'x';
+          }
+
+          if (!stylings[2]) {
+              stylings[2] = '';
+          }
+
+          rs = stylings[2].match(/D[0-9]{2}_([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+)(,([0-9a-f]{3}([0-9a-f]{3})?|[a-wyzA-Z]+))?_/g);
+          if (rs) {
+              for (i = 0; i < rs.length; i += 1) {
+                  pos = parseInt(rs[i].substring(1, 3));
+                  colors = rs[i].substring(4, rs[i].length - 1).split(',');
+                  if (colors[0]) {
+                      colors[0] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[0]) ? "#" + colors[0] : colors[0];
+                  }
+                  if (colors[1]) {
+                      colors[1] = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/g.test(colors[1]) ? "#" + colors[1] : colors[1];
+                  }
+                  options.E[pos] = colors;
+              }
+          }
+
+          rs = stylings[2].match(/Z[0-9]{2},[0-9]+(\.[0-9]+)?(,[0-9]{3}x[0-9]{3})?/g);
+          if (rs) {
+              for (i = 0; i < rs.length; i += 1) {
+                  pos = parseInt(rs[i].substring(1, 3));
+                  size = rs[i].substring(4, rs[i].length).split(',');
+                  size[0] = parseFloat(size[0]);
+                  options.F[pos] = size;
+              }
+          }
+
+          if (stylings.length > 3) {
+              stylings = stylings.slice(3).join('-').split('!');
+              options.class = stylings[0] ? stylings[0] : '';
+              options.id = stylings[1] ? stylings[1] : '';
+          }
+      }
+
+      var sym;
+      var syms;
+      var gelem;
+      var exsyms, exsym;
+      var rsym = /S[123][0-9a-f]{2}[0-5][0-9a-f][0-9]{3}x[0-9]{3}/g;
+      var o = {};
+      o.L = -1;
+      o.R = 1;
+      var x;
+      var x1 = 500;
+      var x2 = 500;
+      var y;
+      var y1 = 500;
+      var y2 = 500;
+      var k;
+      var w;
+      var h;
+      var l;
+      k = fsw.charAt(0);
+      var bbox = ssw.bbox(fsw);
+      bbox = bbox.split(' ');
+      x1 = parseInt(bbox[0]);
+      x2 = parseInt(bbox[1]);
+      y1 = parseInt(bbox[2]);
+      y2 = parseInt(bbox[3]);
+      if (k == 'S') {
+          if (x1 == 500 && y1 == 500) {
+              size = keysize.split('x');
+              x2 = 500 + parseInt(size[0]);
+              y2 = 500 + parseInt(size[1]);
+          } else {
+              x2 = 1000 - x1;
+              y2 = 1000 - y1;
+          }
+      }
+      syms = fsw.match(rsym);
+      exsyms = [];
+      if (!syms) syms = [];
+      var keysized;
+      for (i = 0; i < syms.length; i += 1) {
+          sym = syms[i].slice(0, 6);
+          x = syms[i].slice(6, 9);
+          y = syms[i].slice(10, 13);
+          exsym = new Object;
+          if (options.F[i + 1]) {
+              if (options.F[i + 1][1]) {
+                  x = parseInt(x) + parseInt(options.F[i + 1][1].slice(0, 3)) - 500;
+                  y = parseInt(y) + parseInt(options.F[i + 1][1].slice(4, 7)) - 500;
+                  x1 = Math.min(x1, x);
+                  y1 = Math.min(y1, y);
+              }
+           
+              keysized = ssw.size(sym);
+              if (keysized) {
+                  keysized = keysized.split('x');
+                  x2 = Math.max(x2, parseInt(x) + (options.F[i + 1][0] * parseInt(keysized[0])));
+                  y2 = Math.max(y2, parseInt(y) + (options.F[i + 1][0] * parseInt(keysized[1])));
+              }
+
+          }
+          var keysized1 = ssw.size(sym);
+          if (keysized1) {
+              var keysized2 = keysized1.split('x');
+              exsym.width = parseInt(keysized2[0]);
+              exsym.height = parseInt(keysized2[1]);
+          }
+          else {
+
+              var jjsdfsd = "not keysized"
+          }
+          exsym.x = parseInt(x);
+          exsym.y = parseInt(y);
+          y = parseInt(y);
+          gelem = '<g transform="translate(' + x + ',' + y + ')">';
+          gelem += '<text ';
+          gelem += 'class="sym-fill" ';
+          if (!options.css) {
+              gelem += 'style="pointer-events:none;font-family:\'SuttonSignWritingFill\';font-size:' + (options.F[i + 1] ? 30 * options.F[i + 1][0] : 30) + 'px;fill:' + (options.E[i + 1] ? options.E[i + 1][1] ? options.E[i + 1][1] : options.fill : options.fill) + ';';
+              gelem += '"';
+          }
+          exsym.fontsize = Math.round(options.F[i + 1] ? 30 * options.F[i + 1][0] : 30);
+          exsym.nwcolor = (options.E[i + 1] ? options.E[i + 1][1] ? options.E[i + 1][1] : options.fill : options.fill);
+
+          gelem += '>';
+          exsym.pua = ssw.pua(sym);
+          exsym.code = ssw.code(sym).codePointAt();
+          exsym.key = sym;
+          gelem += ssw.pua(sym);
+          gelem += '</text>';
+          gelem += '<text ';
+          gelem += 'class="sym-line" ';
+          if (!options.css) {
+              gelem += 'style="';
+              gelem += options.copy == 'code' ? '' : 'pointer-events:none;';
+              exsym.nbcolor = (options.E[i + 1] ? options.E[i + 1][0] : options.colorize ? '#' + ssw.colorize(sym) : options.line);
+              gelem += 'font-family:\'SuttonSignWriting\';font-size:' + (options.F[i + 1] ? 30 * options.F[i + 1][0] : 30) + 'px;fill:' + (options.E[i + 1] ? options.E[i + 1][0] : options.colorize ? '#' + ssw.colorize(sym) : options.line) + ';';
+              gelem += '"';
+          }
+          gelem += '>';
+          gelem += ssw.code(sym);
+          gelem += '</text>';
+          gelem += '</g>';
+          exsym.size = options.F[i + 1] ? options.F[i + 1][0] : 1;
+          syms[i] = gelem;
+          exsyms[i] = exsym;
+      }
+
+      x1 = x1 - options.pad;
+      x2 = x2 + options.pad;
+      y1 = y1 - options.pad;
+      y2 = y2 + options.pad;
+      w = x2 - x1;
+      h = y2 - y1;
+      l = o[k] || 0;
+      l = l * 75 + x1 - 400;
+      var exsign = new Object;
+      var svg = '<svg ';
+      if (options.class) {
+          svg += 'class="' + options.class + '" ';
+          exsign.class = options.classname;
+      }
+      if (options.id) {
+          svg += 'id="' + options.id + '" ';
+      }
+      svg += 'version="1.1" xmlns="http://www.w3.org/2000/svg" ';
+
+      if (options.size != 'x') {
+          svg += 'width="' + (w * options.size) + '" height="' + (h * options.size) + '" ';
+      }
+      exsign.width = (w * options.size);
+      exsign.height = (h * options.size);
+      exsign.text = text;
+      svg += 'viewBox="' + x1 + ' ' + y1 + ' ' + w + ' ' + h + '">';
+      if (options.copy != 'code') {
+          svg += '<text style="font-size:0%;">';
+          svg += options.copy == "pua" ? ssw.pua(text) : options.copy == "uni8" ? ssw.uni8(text) : options.copy == "code" ? ssw.code(text) : text;
+          svg += '</text>';
+      }
+      if (options.back) {
+          svg += '  <rect x="' + x1 + '" y="' + y1 + '" width="' + w + '" height="' + h + '" style="fill:' + options.back + ';" />';
+      }
+      exsign.x = x1;
+      exsign.y = y1;
+      exsign.width = w;
+      exsign.height = h;
+      exsign.backfill = options.back;
+      exsign.syms = exsyms;
+      svg += syms.join('') + "</svg>";
+      if (options.laned) {
+          svg = '<div style="padding:10px;position:relative;width:' + w + 'px;height:' + h + 'px;left:' + l + 'px;">' + svg + '</div>';
+      }
+      exsign.laned = options.laned ? true : false;
+      exsign.left = l;
+      return exsign;
   },
   canvas: function(text,options){
     var canvas = document.createElement("canvas");
